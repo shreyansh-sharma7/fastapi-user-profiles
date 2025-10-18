@@ -1,103 +1,163 @@
-import Image from "next/image";
+"use client";
+
+import axios from "axios";
+import React, { useState } from "react";
+
+// This is the shape of your Pydantic model
+interface IOptions {
+  prompt: string;
+  completion_time_days: number;
+  course_weight: "heavy" | "light";
+  user_experience: "beginner" | "intermediate" | "expert";
+  user_why: string;
+  user_prerequisites: string;
+  learner_type: "normal" | "fast";
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // Use a single state object to hold all form data
+  const [options, setOptions] = useState<IOptions>({
+    prompt: "",
+    completion_time_days: 15,
+    course_weight: "light",
+    user_experience: "beginner",
+    user_why: "",
+    user_prerequisites: "",
+    learner_type: "normal",
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  // A single function to update the state object
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Now the 'options' object has all your data,
+    // ready to be sent to your FastAPI backend.
+    console.log("Form Data:", options);
+    // alert("Check the console for the form data!");
+
+    // axios.post("http://127.0.0.1:800/test", { name: "hello" });
+
+    axios
+      .post("http://127.0.0.1:8000/create-course", options)
+      .then((response) => {
+        console.log("Success:", response.data);
+        // Handle your course data here
+      })
+      .catch((error) => {
+        console.error("Error creating course:", error);
+        // Handle errors, maybe show a message to the user
+      });
+    // Example: You would send 'options' to your API here
+    // fetch("http://127.0.0.1:8000/create-course", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(options)
+    // });
+  };
+
+  // Basic styling for layout
+  const formStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    gap: "10px",
+    maxWidth: "500px",
+  };
+
+  return (
+    <main style={{ padding: "2rem" }}>
+      <h1>Course Options Form</h1>
+      <form onSubmit={handleSubmit} style={formStyle}>
+        <label htmlFor="prompt">What Do You Want To Learn?</label>
+        <input
+          id="promt"
+          name="prompt"
+          value={options.prompt}
+          onChange={handleChange}
+        />
+        {/* completion_time_days */}
+        <label htmlFor="completion_time_days">Completion Time (Days):</label>
+        <input
+          type="number"
+          id="completion_time_days"
+          name="completion_time_days"
+          value={options.completion_time_days}
+          onChange={handleChange}
+        />
+
+        {/* course_weight */}
+        <label htmlFor="course_weight">Course Weight:</label>
+        <select
+          id="course_weight"
+          name="course_weight"
+          value={options.course_weight}
+          onChange={handleChange}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <option value="light">Light</option>
+          <option value="heavy">Heavy</option>
+        </select>
+
+        {/* user_experience */}
+        <label htmlFor="user_experience">Experience Level:</label>
+        <select
+          id="user_experience"
+          name="user_experience"
+          value={options.user_experience}
+          onChange={handleChange}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="expert">Expert</option>
+        </select>
+
+        {/* learner_type */}
+        <label htmlFor="learner_type">Learner Type:</label>
+        <select
+          id="learner_type"
+          name="learner_type"
+          value={options.learner_type}
+          onChange={handleChange}
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <option value="normal">Normal</option>
+          <option value="fast">Fast</option>
+        </select>
+
+        {/* user_why */}
+        <label htmlFor="user_why">Why are you learning?</label>
+        <textarea
+          id="user_why"
+          name="user_why"
+          value={options.user_why}
+          onChange={handleChange}
+        />
+
+        {/* user_prerequisites */}
+        <label htmlFor="user_prerequisites">Prerequisites you have:</label>
+        <textarea
+          id="user_prerequisites"
+          name="user_prerequisites"
+          value={options.user_prerequisites}
+          onChange={handleChange}
+        />
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          style={{ gridColumn: "span 2", marginTop: "1rem" }}
+        >
+          Submit Options
+        </button>
+      </form>
+    </main>
   );
 }
